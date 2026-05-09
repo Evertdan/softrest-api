@@ -7,6 +7,18 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import dotenv from "dotenv";
 
+// Import route modules
+import authRoutes from "./modules/auth/index.js";
+import productsRoutes from "./modules/products/index.js";
+import ordersRoutes from "./modules/orders/index.js";
+import kitchenRoutes from "./modules/kitchen/index.js";
+import inventoryRoutes from "./modules/inventory/index.js";
+import cashRegisterRoutes from "./modules/cash-register/index.js";
+import cfdiRoutes from "./modules/cfdi/index.js";
+import deliveryRoutes from "./modules/delivery/index.js";
+import loyaltyRoutes from "./modules/loyalty/index.js";
+import reportsRoutes from "./modules/reports/index.js";
+
 // Load environment variables
 dotenv.config();
 
@@ -78,6 +90,18 @@ await app.register(swaggerUi, {
     deepLinking: false,
   },
 });
+
+// Register API routes
+await app.register(authRoutes, { prefix: "/api/v1/auth" });
+await app.register(productsRoutes, { prefix: "/api/v1/products" });
+await app.register(ordersRoutes, { prefix: "/api/v1/orders" });
+await app.register(kitchenRoutes, { prefix: "/api/v1/kitchen" });
+await app.register(inventoryRoutes, { prefix: "/api/v1/inventory" });
+await app.register(cashRegisterRoutes, { prefix: "/api/v1/cash-register" });
+await app.register(cfdiRoutes, { prefix: "/api/v1/cfdi" });
+await app.register(deliveryRoutes, { prefix: "/api/v1/delivery" });
+await app.register(loyaltyRoutes, { prefix: "/api/v1/loyalty" });
+await app.register(reportsRoutes, { prefix: "/api/v1/reports" });
 
 // Health check endpoint
 app.get("/api/v1/health", async () => {

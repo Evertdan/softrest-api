@@ -62,6 +62,20 @@ export default async function cashRegisterRoutes(app: FastifyInstance) {
     return reply.status(201).send(register);
   });
 
+  app.put("/cash-registers/:id", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const restaurantId = request.query?.restaurantId as string || "default";
+    const register = await cashRegisterService.updateCashRegister(id, restaurantId, request.body);
+    return reply.send(register);
+  });
+
+  app.delete("/cash-registers/:id", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const restaurantId = request.query?.restaurantId as string || "default";
+    await cashRegisterService.deleteCashRegister(id, restaurantId);
+    return reply.status(204).send();
+  });
+
   app.post("/cash-registers/:id/close", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const result = closeCashRegisterSchema.safeParse(request.body);

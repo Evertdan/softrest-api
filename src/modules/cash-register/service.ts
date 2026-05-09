@@ -32,6 +32,20 @@ export class CashRegisterService {
     return register;
   }
 
+  async updateCashRegister(id: string, restaurantId: string, data: any) {
+    await this.getCashRegisterById(id, restaurantId);
+    await db.update(cashRegisters).set({
+      ...data,
+      updatedAt: new Date(),
+    }).where(eq(cashRegisters.id, id));
+    return this.getCashRegisterById(id, restaurantId);
+  }
+
+  async deleteCashRegister(id: string, restaurantId: string) {
+    await this.getCashRegisterById(id, restaurantId);
+    await db.delete(cashRegisters).where(eq(cashRegisters.id, id));
+  }
+
   async closeCashRegister(id: string, restaurantId: string, data: {
     closingAmount: string;
     expectedAmount?: string;

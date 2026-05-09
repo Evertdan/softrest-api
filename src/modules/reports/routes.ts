@@ -21,11 +21,25 @@ const auditLogSchema = z.object({
   newData: z.any().optional(),
 });
 
+interface ReportQuery {
+  restaurantId?: string;
+  entityType?: string;
+  action?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+}
+
+interface AuthenticatedRequest {
+  user?: { userId: string; role: string };
+}
+
 export default async function reportsRoutes(app: FastifyInstance) {
   app.get("/reports/audit-logs", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const entityType = request.query?.entityType as string | undefined;
-    const action = request.query?.action as string | undefined;
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
+    const entityType = query.entityType;
+    const action = query.action;
     const logs = await reportsService.getAuditLogs(restaurantId, entityType, action);
     return reply.send(logs);
   });
@@ -35,8 +49,9 @@ export default async function reportsRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const userId = request.user?.userId;
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
+    const userId = (request as unknown as AuthenticatedRequest).user?.userId;
     const log = await reportsService.createAuditLog({
       ...result.data,
       restaurantId,
@@ -48,14 +63,16 @@ export default async function reportsRoutes(app: FastifyInstance) {
   });
 
   app.get("/reports/scheduled", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     const reports = await reportsService.getScheduledReports(restaurantId);
     return reply.send(reports);
   });
 
   app.get("/reports/scheduled/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     const report = await reportsService.getScheduledReportById(id, restaurantId);
     return reply.send(report);
   });
@@ -65,29 +82,33 @@ export default async function reportsRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     const report = await reportsService.createScheduledReport({ ...result.data, restaurantId });
     return reply.status(201).send(report);
   });
 
   app.put("/reports/scheduled/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     const report = await reportsService.updateScheduledReport(id, restaurantId, request.body);
     return reply.send(report);
   });
 
   app.delete("/reports/scheduled/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     await reportsService.deleteScheduledReport(id, restaurantId);
     return reply.status(204).send();
   });
 
   app.get("/reports/sales", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const startDate = request.query?.startDate as string;
-    const endDate = request.query?.endDate as string;
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
+    const startDate = query.startDate;
+    const endDate = query.endDate;
 
     if (!startDate || !endDate) {
       return reply.status(400).send({
@@ -106,8 +127,9 @@ export default async function reportsRoutes(app: FastifyInstance) {
   });
 
   app.get("/reports/sales/daily", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const date = request.query?.date as string;
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
+    const date = query.date;
 
     if (!date) {
       return reply.status(400).send({
@@ -122,7 +144,8 @@ export default async function reportsRoutes(app: FastifyInstance) {
   });
 
   app.get("/reports/inventory", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ReportQuery;
+    const restaurantId = query.restaurantId || "default";
     const report = await reportsService.getInventoryReport(restaurantId);
     return reply.send(report);
   });

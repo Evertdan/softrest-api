@@ -49,8 +49,8 @@ export class ReportsService {
   async createScheduledReport(data: {
     restaurantId: string;
     name: string;
-    type: string;
-    frequency: string;
+    type: "sales" | "inventory" | "financial" | "staff" | "custom";
+    frequency: "daily" | "weekly" | "monthly";
     config?: any;
     recipients?: any;
   }) {

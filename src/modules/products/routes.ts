@@ -29,17 +29,25 @@ const productSchema = z.object({
   variants: z.any().optional(),
 });
 
+interface ProductQuery {
+  restaurantId?: string;
+  categoryId?: string;
+  search?: string;
+}
+
 export default async function productsRoutes(app: FastifyInstance) {
   // Categories
   app.get("/categories", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const categories = await productsService.getCategories(restaurantId);
     return reply.send(categories);
   });
 
   app.get("/categories/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const category = await productsService.getCategoryById(id, restaurantId);
     return reply.send(category);
   });
@@ -49,37 +57,42 @@ export default async function productsRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const category = await productsService.createCategory({ ...result.data, restaurantId });
     return reply.status(201).send(category);
   });
 
   app.patch("/categories/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const category = await productsService.updateCategory(id, restaurantId, request.body as any);
     return reply.send(category);
   });
 
   app.delete("/categories/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     await productsService.deleteCategory(id, restaurantId);
     return reply.status(204).send();
   });
 
   // Products
   app.get("/products", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const categoryId = request.query?.categoryId as string | undefined;
-    const search = request.query?.search as string | undefined;
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
+    const categoryId = query.categoryId;
+    const search = query.search;
     const items = await productsService.getProducts(restaurantId, categoryId, search);
     return reply.send(items);
   });
 
   app.get("/products/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const product = await productsService.getProductById(id, restaurantId);
     return reply.send(product);
   });
@@ -89,21 +102,24 @@ export default async function productsRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const product = await productsService.createProduct({ ...result.data, restaurantId });
     return reply.status(201).send(product);
   });
 
   app.patch("/products/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     const product = await productsService.updateProduct(id, restaurantId, request.body as any);
     return reply.send(product);
   });
 
   app.delete("/products/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as ProductQuery;
+    const restaurantId = query.restaurantId || "default";
     await productsService.deleteProduct(id, restaurantId);
     return reply.status(204).send();
   });

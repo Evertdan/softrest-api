@@ -27,12 +27,13 @@ export class DeliveryService {
     menuSyncEnabled?: boolean;
     autoAccept?: boolean;
   }) {
-    const [platform] = await db.insert(deliveryPlatforms).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(deliveryPlatforms).values({
+      id,
       isActive: true,
       ...data,
-    }).$returningId();
-    return platform;
+    });
+    return this.getPlatformById(id, data.restaurantId);
   }
 
   async updatePlatform(id: string, restaurantId: string, data: any) {
@@ -50,16 +51,19 @@ export class DeliveryService {
   }
 
   async getDeliveryOrders(restaurantId: string, platformId?: string, status?: string) {
-    const conditions = [eq(deliveryOrders.restaurantId as any, restaurantId)];
+    const conditions = [eq(deliveryPlatforms.restaurantId, restaurantId)];
     
     if (platformId) {
       conditions.push(eq(deliveryOrders.platformId, platformId));
     }
     if (status) {
-      conditions.push(eq(deliveryOrders.deliveryStatus, status));
+      conditions.push(eq(deliveryOrders.deliveryStatus, status as any));
     }
     
-    return db.select().from(deliveryOrders)
+    return db.select({
+      deliveryOrder: deliveryOrders,
+    }).from(deliveryOrders)
+      .innerJoin(deliveryPlatforms, eq(deliveryOrders.platformId, deliveryPlatforms.id))
       .where(and(...conditions))
       .orderBy(desc(deliveryOrders.createdAt));
   }
@@ -87,12 +91,13 @@ export class DeliveryService {
     driverPhone?: string;
     trackingUrl?: string;
   }) {
-    const [order] = await db.insert(deliveryOrders).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(deliveryOrders).values({
+      id,
       deliveryStatus: "pending",
       ...data,
-    }).$returningId();
-    return order;
+    });
+    return this.getDeliveryOrderById(id);
   }
 
   async updateDeliveryOrder(id: string, data: any) {

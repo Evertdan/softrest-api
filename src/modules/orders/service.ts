@@ -46,16 +46,16 @@ export class OrdersService {
     taxAmount?: string;
     total?: string;
   }) {
-    const [order] = await db.insert(orders).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(orders).values({
+      id,
       status: "pending",
       paymentStatus: "pending",
       type: (data.type || "dine_in") as any,
-      source: data.source || "pos",
+      source: (data.source || "pos") as any,
       ...data,
-    }).$returningId();
-
-    return order;
+    });
+    return this.getOrderById(id, data.restaurantId);
   }
 
   async addOrderItem(data: {
@@ -68,11 +68,13 @@ export class OrdersService {
     modifiers?: any;
     notes?: string;
   }) {
-    const [item] = await db.insert(orderItems).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(orderItems).values({
+      id,
       status: "pending" as any,
       ...data,
-    }).$returningId();
+    });
+    const [item] = await db.select().from(orderItems).where(eq(orderItems.id, id));
     return item;
   }
 
@@ -143,12 +145,13 @@ export class OrdersService {
     posX?: number;
     posY?: number;
   }) {
-    const [table] = await db.insert(tables).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(tables).values({
+      id,
       status: "available" as any,
       ...data,
-    }).$returningId();
-    return table;
+    });
+    return this.getTableById(id, data.restaurantId);
   }
 
   async updateTable(id: string, restaurantId: string, data: Partial<typeof tables.$inferInsert>) {

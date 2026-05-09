@@ -30,12 +30,12 @@ export class InventoryService {
     costPerUnit?: string;
     location?: string;
   }) {
-    const [item] = await db.insert(inventoryItems).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(inventoryItems).values({
+      id,
       ...data,
-      unit: data.unit as any,
-    }).$returningId();
-    return item;
+    });
+    return this.getItemById(id, data.restaurantId);
   }
 
   async updateItem(id: string, restaurantId: string, data: Partial<typeof inventoryItems.$inferInsert>) {
@@ -67,11 +67,12 @@ export class InventoryService {
     reference?: string;
     notes?: string;
   }) {
-    const [movement] = await db.insert(inventoryMovements).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(inventoryMovements).values({
+      id,
       ...data,
-      unit: data.unit as any,
-    }).$returningId();
+    });
+    const [movement] = await db.select().from(inventoryMovements).where(eq(inventoryMovements.id, id));
     return movement;
   }
 
@@ -100,12 +101,12 @@ export class InventoryService {
     instructions?: string;
     preparationTime?: number;
   }) {
-    const [recipe] = await db.insert(recipes).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(recipes).values({
+      id,
       ...data,
-      unit: data.unit as any,
-    }).$returningId();
-    return recipe;
+    });
+    return this.getRecipeById(id);
   }
 
   async addRecipeIngredient(data: {
@@ -115,11 +116,12 @@ export class InventoryService {
     unit: any;
     notes?: string;
   }) {
-    const [ingredient] = await db.insert(recipeIngredients).values({
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID();
+    await db.insert(recipeIngredients).values({
+      id,
       ...data,
-      unit: data.unit as any,
-    }).$returningId();
+    });
+    const [ingredient] = await db.select().from(recipeIngredients).where(eq(recipeIngredients.id, id));
     return ingredient;
   }
 }

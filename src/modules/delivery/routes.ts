@@ -5,6 +5,12 @@ import { authenticate } from "../../shared/middleware/auth.js";
 
 const deliveryService = new DeliveryService();
 
+interface QueryParams {
+  restaurantId?: string;
+  platformId?: string;
+  status?: string;
+}
+
 const platformSchema = z.object({
   name: z.enum(["uber_eats", "rappi", "didi_food", "own_delivery"]),
   apiKey: z.string().optional(),
@@ -39,16 +45,24 @@ const updateStatusSchema = z.object({
   trackingUrl: z.string().optional(),
 });
 
+
+interface QueryParams {
+  restaurantId?: string;
+  platformId?: string;
+  status?: string;
+}
 export default async function deliveryRoutes(app: FastifyInstance) {
   app.get("/delivery-platforms", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const platforms = await deliveryService.getPlatforms(restaurantId);
     return reply.send(platforms);
   });
 
   app.get("/delivery-platforms/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const platform = await deliveryService.getPlatformById(id, restaurantId);
     return reply.send(platform);
   });
@@ -58,29 +72,33 @@ export default async function deliveryRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const platform = await deliveryService.createPlatform({ ...result.data, restaurantId });
     return reply.status(201).send(platform);
   });
 
   app.put("/delivery-platforms/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const platform = await deliveryService.updatePlatform(id, restaurantId, request.body);
     return reply.send(platform);
   });
 
   app.delete("/delivery-platforms/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     await deliveryService.deletePlatform(id, restaurantId);
     return reply.status(204).send();
   });
 
   app.get("/delivery-orders", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const platformId = request.query?.platformId as string | undefined;
-    const status = request.query?.status as string | undefined;
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
+    const platformId = query.platformId;
+    const status = query.status;
     const orders = await deliveryService.getDeliveryOrders(restaurantId, platformId, status);
     return reply.send(orders);
   });

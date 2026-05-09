@@ -19,7 +19,7 @@ export class DeliveryService {
 
   async createPlatform(data: {
     restaurantId: string;
-    name: string;
+    name: any;
     apiKey?: string;
     apiSecret?: string;
     webhookUrl?: string;
@@ -50,7 +50,7 @@ export class DeliveryService {
   }
 
   async getDeliveryOrders(restaurantId: string, platformId?: string, status?: string) {
-    const conditions = [eq(deliveryOrders.restaurantId, restaurantId)];
+    const conditions = [eq(deliveryOrders.restaurantId as any, restaurantId)];
     
     if (platformId) {
       conditions.push(eq(deliveryOrders.platformId, platformId));

@@ -50,7 +50,7 @@ export class OrdersService {
       id: crypto.randomUUID(),
       status: "pending",
       paymentStatus: "pending",
-      type: data.type || "dine_in",
+      type: (data.type || "dine_in") as any,
       source: data.source || "pos",
       ...data,
     }).$returningId();
@@ -70,7 +70,7 @@ export class OrdersService {
   }) {
     const [item] = await db.insert(orderItems).values({
       id: crypto.randomUUID(),
-      status: "pending",
+      status: "pending" as any,
       ...data,
     }).$returningId();
     return item;
@@ -145,7 +145,7 @@ export class OrdersService {
   }) {
     const [table] = await db.insert(tables).values({
       id: crypto.randomUUID(),
-      status: "available",
+      status: "available" as any,
       ...data,
     }).$returningId();
     return table;

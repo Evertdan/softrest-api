@@ -5,6 +5,12 @@ import { authenticate } from "../../shared/middleware/auth.js";
 
 const loyaltyService = new LoyaltyService();
 
+interface QueryParams {
+  restaurantId?: string;
+  programId?: string;
+  clientId?: string;
+}
+
 const programSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -43,14 +49,16 @@ const clientSchema = z.object({
 
 export default async function loyaltyRoutes(app: FastifyInstance) {
   app.get("/loyalty-programs", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const programs = await loyaltyService.getPrograms(restaurantId);
     return reply.send(programs);
   });
 
   app.get("/loyalty-programs/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const program = await loyaltyService.getProgramById(id, restaurantId);
     return reply.send(program);
   });
@@ -60,28 +68,32 @@ export default async function loyaltyRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const program = await loyaltyService.createProgram({ ...result.data, restaurantId });
     return reply.status(201).send(program);
   });
 
   app.put("/loyalty-programs/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const program = await loyaltyService.updateProgram(id, restaurantId, request.body);
     return reply.send(program);
   });
 
   app.delete("/loyalty-programs/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     await loyaltyService.deleteProgram(id, restaurantId);
     return reply.status(204).send();
   });
 
   app.get("/loyalty-accounts", { preHandler: [authenticate] }, async (request, reply) => {
-    const programId = request.query?.programId as string | undefined;
-    const clientId = request.query?.clientId as string | undefined;
+    const query = request.query as QueryParams;
+    const programId = query.programId;
+    const clientId = query.clientId;
     const accounts = await loyaltyService.getAccounts(programId, clientId);
     return reply.send(accounts);
   });
@@ -128,14 +140,16 @@ export default async function loyaltyRoutes(app: FastifyInstance) {
   });
 
   app.get("/clients", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const clients = await loyaltyService.getClients(restaurantId);
     return reply.send(clients);
   });
 
   app.get("/clients/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const client = await loyaltyService.getClientById(id, restaurantId);
     return reply.send(client);
   });
@@ -145,7 +159,8 @@ export default async function loyaltyRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const data = result.data;
     const clientData: any = {
       restaurantId,
@@ -168,14 +183,16 @@ export default async function loyaltyRoutes(app: FastifyInstance) {
 
   app.put("/clients/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const client = await loyaltyService.updateClient(id, restaurantId, request.body);
     return reply.send(client);
   });
 
   app.delete("/clients/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     await loyaltyService.deleteClient(id, restaurantId);
     return reply.status(204).send();
   });

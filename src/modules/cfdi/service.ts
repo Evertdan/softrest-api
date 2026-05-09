@@ -7,7 +7,7 @@ export class CfdiService {
   async getInvoices(restaurantId: string, status?: string) {
     if (status) {
       return db.select().from(cfdiInvoices)
-        .where(and(eq(cfdiInvoices.restaurantId, restaurantId), eq(cfdiInvoices.status, status)))
+        .where(and(eq(cfdiInvoices.restaurantId, restaurantId), eq(cfdiInvoices.status, status as any)))
         .orderBy(desc(cfdiInvoices.createdAt));
     }
     return db.select().from(cfdiInvoices)
@@ -42,6 +42,9 @@ export class CfdiService {
       id: crypto.randomUUID(),
       status: "pending",
       ...data,
+      paymentMethod: data.paymentMethod as any,
+      paymentForm: data.paymentForm as any,
+      cfdiUse: data.cfdiUse as any,
     }).$returningId();
     return invoice;
   }

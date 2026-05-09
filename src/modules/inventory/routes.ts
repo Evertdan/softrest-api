@@ -1,9 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { InventoryService } from "./service.js";
-import { authenticate } from "../../shared/middleware/auth.js";
+import { authenticate, AuthenticatedUser } from "../../shared/middleware/auth.js";
 
 const inventoryService = new InventoryService();
+
+interface QueryParams {
+  restaurantId?: string;
+}
 
 const itemSchema = z.object({
   productId: z.string().uuid().optional(),
@@ -47,16 +51,22 @@ const recipeIngredientSchema = z.object({
   notes: z.string().optional(),
 });
 
+
+interface QueryParams {
+  restaurantId?: string;
+}
 export default async function inventoryRoutes(app: FastifyInstance) {
   app.get("/inventory", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const items = await inventoryService.getItems(restaurantId);
     return reply.send(items);
   });
 
   app.get("/inventory/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const item = await inventoryService.getItemById(id, restaurantId);
     return reply.send(item);
   });
@@ -66,21 +76,24 @@ export default async function inventoryRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const item = await inventoryService.createItem({ ...result.data, restaurantId });
     return reply.status(201).send(item);
   });
 
   app.patch("/inventory/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const item = await inventoryService.updateItem(id, restaurantId, request.body as any);
     return reply.send(item);
   });
 
   app.delete("/inventory/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     await inventoryService.deleteItem(id, restaurantId);
     return reply.status(204).send();
   });
@@ -96,7 +109,7 @@ export default async function inventoryRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const userId = request.user?.userId || "default";
+    const userId = (request.user as AuthenticatedUser | undefined)?.userId || "default";
     const movement = await inventoryService.addMovement({ ...result.data, userId });
     return reply.status(201).send(movement);
   });

@@ -5,6 +5,11 @@ import { authenticate } from "../../shared/middleware/auth.js";
 
 const cfdiService = new CfdiService();
 
+interface QueryParams {
+  restaurantId?: string;
+  status?: string;
+}
+
 const createInvoiceSchema = z.object({
   orderId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
@@ -36,15 +41,17 @@ const updateInvoiceSchema = z.object({
 
 export default async function cfdiRoutes(app: FastifyInstance) {
   app.get("/cfdi", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const status = request.query?.status as string | undefined;
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
+    const status = query.status;
     const invoices = await cfdiService.getInvoices(restaurantId, status);
     return reply.send(invoices);
   });
 
   app.get("/cfdi/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const invoice = await cfdiService.getInvoiceById(id, restaurantId);
     return reply.send(invoice);
   });
@@ -54,7 +61,8 @@ export default async function cfdiRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const invoice = await cfdiService.createInvoice({ ...result.data, restaurantId });
     return reply.status(201).send(invoice);
   });
@@ -65,21 +73,24 @@ export default async function cfdiRoutes(app: FastifyInstance) {
     if (!result.success) {
       return reply.status(400).send({ statusCode: 400, error: "Bad Request", details: result.error.errors });
     }
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const invoice = await cfdiService.updateInvoice(id, restaurantId, result.data);
     return reply.send(invoice);
   });
 
   app.delete("/cfdi/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     await cfdiService.deleteInvoice(id, restaurantId);
     return reply.status(204).send();
   });
 
   app.post("/cfdi/:id/cancel", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const { reason } = request.body as { reason?: string };
     const invoice = await cfdiService.cancelInvoice(id, restaurantId, reason);
     return reply.send(invoice);
@@ -87,7 +98,8 @@ export default async function cfdiRoutes(app: FastifyInstance) {
 
   app.post("/cfdi/:id/stamp", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const restaurantId = request.query?.restaurantId as string || "default";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
     const { pacResponse } = request.body as { pacResponse?: any };
     const invoice = await cfdiService.stampInvoice(id, restaurantId, pacResponse);
     return reply.send(invoice);

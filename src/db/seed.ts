@@ -6,7 +6,7 @@ async function seed() {
 
   try {
     // Crear restaurante de prueba
-    const [restaurant] = await db.insert(schema.restaurants).values({
+    const restaurant = ((await db.insert(schema.restaurants).values({
       id: crypto.randomUUID(),
       name: "Restaurante de Prueba",
       slug: "restaurante-prueba",
@@ -15,12 +15,12 @@ async function seed() {
       email: "contacto@restaurante-prueba.com",
       timezone: "America/Mexico_City",
       currency: "MXN",
-    }).$returningId();
+    }).$returningId()) as { id: string }[])[0]!;
 
     console.log("✅ Restaurante creado:", restaurant.id);
 
     // Crear usuario administrador
-    const [user] = await db.insert(schema.users).values({
+    const user = ((await db.insert(schema.users).values({
       id: crypto.randomUUID(),
       restaurantId: restaurant.id,
       email: "admin@softrest.io",
@@ -28,22 +28,22 @@ async function seed() {
       firstName: "Administrador",
       lastName: "Sistema",
       role: "owner",
-    }).$returningId();
+    }).$returningId()) as { id: string }[])[0]!;
 
     console.log("✅ Usuario admin creado:", user.id);
 
     // Crear categorías de ejemplo
-    const categories = await db.insert(schema.categories).values([
+    const categories = ((await db.insert(schema.categories).values([
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Entradas", color: "#FF6B6B", sortOrder: 1 },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Platos Principales", color: "#4ECDC4", sortOrder: 2 },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Bebidas", color: "#45B7D1", sortOrder: 3 },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Postres", color: "#FFA07A", sortOrder: 4 },
-    ]).$returningId();
+    ])).$returningId()) as { id: string }[];
 
     console.log(`✅ ${categories.length} categorías creadas`);
 
     // Crear productos de ejemplo
-    const products = await db.insert(schema.products).values([
+    const products = ((await db.insert(schema.products).values([
       {
         id: crypto.randomUUID(),
         restaurantId: restaurant.id,
@@ -71,17 +71,17 @@ async function seed() {
         price: "35.00",
         preparationTime: 2,
       },
-    ]).$returningId();
+    ])).$returningId()) as { id: string }[];
 
     console.log(`✅ ${products.length} productos creados`);
 
     // Crear mesas de ejemplo
-    const tables = await db.insert(schema.tables).values([
+    const tables = ((await db.insert(schema.tables).values([
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Mesa 1", number: 1, capacity: 4, section: "Terraza" },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Mesa 2", number: 2, capacity: 2, section: "Terraza" },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Mesa 3", number: 3, capacity: 6, section: "Salón Principal" },
       { id: crypto.randomUUID(), restaurantId: restaurant.id, name: "Mesa 4", number: 4, capacity: 4, section: "Salón Principal" },
-    ]).$returningId();
+    ])).$returningId()) as { id: string }[];
 
     console.log(`✅ ${tables.length} mesas creadas`);
 

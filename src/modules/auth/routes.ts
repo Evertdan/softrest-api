@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { AuthService } from "./service.js";
-import { authenticate } from "../../shared/middleware/auth.js";
+import { authenticate, AuthenticatedUser } from "../../shared/middleware/auth.js";
 
 const authService = new AuthService();
 
@@ -91,7 +91,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     try {
       const user = await authService.register(result.data);
-      return reply.status(201).send({ id: user.id });
+      return reply.status(201).send({ id: user!.id });
     } catch (error: any) {
       return reply.status(409).send({
         statusCode: 409,
@@ -138,9 +138,10 @@ export default async function authRoutes(app: FastifyInstance) {
       security: [{ bearerAuth: [] }],
     },
   }, async (request, reply) => {
+    const user = request.user as AuthenticatedUser | undefined;
     return reply.send({
-      userId: request.user?.userId,
-      role: request.user?.role,
+      userId: user?.userId,
+      role: user?.role,
     });
   });
 }

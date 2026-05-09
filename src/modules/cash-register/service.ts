@@ -88,7 +88,7 @@ export class CashRegisterService {
     userId: string;
     amount: string;
     tip?: string;
-    method: string;
+    method: any;
     reference?: string;
     terminalId?: string;
     authCode?: string;
@@ -104,7 +104,7 @@ export class CashRegisterService {
 
   async createPaymentSplit(data: {
     paymentId: string;
-    method: string;
+    method: any;
     amount: string;
     reference?: string;
   }) {

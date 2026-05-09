@@ -91,7 +91,7 @@ export class LoyaltyService {
   async addTransaction(data: {
     accountId: string;
     orderId?: string;
-    type: string;
+    type: any;
     points: number;
     description?: string;
     expiresAt?: Date;
@@ -102,9 +102,9 @@ export class LoyaltyService {
     }).$returningId();
 
     const account = await this.getAccountById(data.accountId);
-    let newBalance = account.pointsBalance;
-    let newEarned = account.totalEarned;
-    let newRedeemed = account.totalRedeemed;
+    let newBalance = account.pointsBalance!;
+    let newEarned = account.totalEarned!;
+    let newRedeemed = account.totalRedeemed!;
 
     if (data.type === "earn" || data.type === "bonus") {
       newBalance += data.points;

@@ -1,20 +1,32 @@
 import { FastifyInstance } from "fastify";
 import { KitchenService } from "./service.js";
-import { authenticate } from "../../shared/middleware/auth.js";
+import { authenticate, AuthenticatedUser } from "../../shared/middleware/auth.js";
 
 const kitchenService = new KitchenService();
 
+interface QueryParams {
+  restaurantId?: string;
+  status?: string;
+}
+
+
+interface QueryParams {
+  restaurantId?: string;
+  status?: string;
+}
 export default async function kitchenRoutes(app: FastifyInstance) {
   app.get("/kitchen/orders", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const status = request.query?.status as string || "preparing";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
+    const status = query.status || "preparing";
     const orders = await kitchenService.getOrdersByStatus(restaurantId, status);
     return reply.send(orders);
   });
 
   app.get("/kitchen/items", { preHandler: [authenticate] }, async (request, reply) => {
-    const restaurantId = request.query?.restaurantId as string || "default";
-    const status = request.query?.status as string || "pending";
+    const query = request.query as QueryParams;
+    const restaurantId = query.restaurantId || "default";
+    const status = query.status || "pending";
     const items = await kitchenService.getOrderItemsByStatus(restaurantId, status);
     return reply.send(items);
   });
@@ -22,7 +34,7 @@ export default async function kitchenRoutes(app: FastifyInstance) {
   app.patch("/kitchen/items/:id/status", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const { status } = request.body as { status: string };
-    const preparedById = request.user?.userId;
+    const preparedById = (request.user as AuthenticatedUser | undefined)?.userId;
     const item = await kitchenService.updateItemStatus(id, status, preparedById);
     return reply.send(item);
   });

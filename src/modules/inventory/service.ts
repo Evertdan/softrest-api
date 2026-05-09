@@ -22,7 +22,7 @@ export class InventoryService {
     productId?: string;
     name: string;
     sku?: string;
-    unit?: string;
+    unit?: any;
     currentStock?: string;
     minStock?: string;
     maxStock?: string;
@@ -33,6 +33,7 @@ export class InventoryService {
     const [item] = await db.insert(inventoryItems).values({
       id: crypto.randomUUID(),
       ...data,
+      unit: data.unit as any,
     }).$returningId();
     return item;
   }
@@ -57,8 +58,8 @@ export class InventoryService {
   async addMovement(data: {
     inventoryItemId: string;
     userId: string;
-    type: string;
-    quantity: string;
+    type: any;
+    quantity: any;
     previousStock: string;
     newStock: string;
     unitCost?: string;
@@ -69,6 +70,7 @@ export class InventoryService {
     const [movement] = await db.insert(inventoryMovements).values({
       id: crypto.randomUUID(),
       ...data,
+      unit: data.unit as any,
     }).$returningId();
     return movement;
   }
@@ -94,13 +96,14 @@ export class InventoryService {
     productId: string;
     name: string;
     yieldQuantity?: string;
-    yieldUnit?: string;
+    yieldUnit?: any;
     instructions?: string;
     preparationTime?: number;
   }) {
     const [recipe] = await db.insert(recipes).values({
       id: crypto.randomUUID(),
       ...data,
+      unit: data.unit as any,
     }).$returningId();
     return recipe;
   }
@@ -109,12 +112,13 @@ export class InventoryService {
     recipeId: string;
     inventoryItemId: string;
     quantity: string;
-    unit: string;
+    unit: any;
     notes?: string;
   }) {
     const [ingredient] = await db.insert(recipeIngredients).values({
       id: crypto.randomUUID(),
       ...data,
+      unit: data.unit as any,
     }).$returningId();
     return ingredient;
   }

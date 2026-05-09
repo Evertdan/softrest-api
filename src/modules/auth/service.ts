@@ -25,7 +25,7 @@ export class AuthService {
       lastName: data.lastName,
       restaurantId: data.restaurantId,
       role: data.role as any || "waiter",
-    }).$returningId();
+    }).$returningId() as { id: string }[];
 
     return user;
   }
